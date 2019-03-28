@@ -1,11 +1,12 @@
 from rest_framework import viewsets
 from rest_framework.decorators import action
-from .models import Alarm, SleepData, Event, Song
-from .serializers import AlarmSerializer, SleepDataSerializer, EventSerializer, SongSerializer
+from .models import Alarm, SleepData, Event, Song, Profile
+from .serializers import AlarmSerializer, SleepDataSerializer, EventSerializer, SongSerializer, ProfileSerializer, UserSerializer
 from django.db.models import Count, Min, Max, Avg, Sum
 from rest_framework.views import APIView
 from rest_framework.renderers import JSONRenderer
 from django.http import JsonResponse
+from django.contrib.auth.models import User
 
 import datetime
 from numpy import polyfit 
@@ -19,6 +20,10 @@ from django.core.serializers.json import DjangoJSONEncoder
 
 from sleepsite import computation
 
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = (permissions.AllowAny,) 
 
 class AlarmViewSet(viewsets.ModelViewSet):
     queryset = Alarm.objects.all()
@@ -40,6 +45,7 @@ class AlarmViewSet(viewsets.ModelViewSet):
         """
         queryset = Alarm.objects.all()
         query_date = self.request.query_params.get('date', None)
+        query_user = self.request.query_params.get('username', None)
 
         if query_date is not None: 
             date = datetime.datetime.strptime(query_date, '%Y-%m-%d').date()
@@ -47,7 +53,8 @@ class AlarmViewSet(viewsets.ModelViewSet):
                                        alarm_time__month=date.month, 
                                        alarm_time__day=date.day)
             return queryset        
-
+        elif query_user is not None:
+            queryset = queryset.filter(username__username=query_user)
         return queryset   
 
 class EventViewSet(viewsets.ModelViewSet):
@@ -72,7 +79,13 @@ class EventViewSet(viewsets.ModelViewSet):
 class SongViewSet(viewsets.ModelViewSet):
     queryset = Song.objects.all()
     serializer_class = SongSerializer
+    permission_classes =(permissions.AllowAny,) 
+
+class ProfileViewSet(viewsets.ModelViewSet):
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
     permission_classes = (permissions.AllowAny,) 
+
 
 class SleepDataViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.AllowAny,) 

@@ -6,20 +6,14 @@ import uuid
 import time
 import datetime
 
-# Create your models here.
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    bio = models.TextField(max_length=500, blank=True)
+    location = models.CharField(max_length=30, blank=True)
+    name = models.CharField(max_length=100, default="name")
+    image = models.ImageField(blank=True, upload_to="images/", default='images/moon.jpg')
 
-def path_and_rename(instance, filename):
-    upload_to = 'event_pics'
-    ext = filename.split('.')[-1]
-    # get filename
-    if instance.pk:
-        filename = '{}.{}'.format(instance.pk, ext)
-    else:
-        # set filename as random string
-        filename = '{}.{}'.format(uuid4().hex, ext)
-    # return the whole path to the file
-    return os.path.join(upload_to, filename)
-
+DEFAULT_USER_ID = 1
 class Alarm(models.Model):
     description = models.TextField(blank=True)
     created_on = models.DateTimeField(auto_now_add=True)
@@ -27,6 +21,7 @@ class Alarm(models.Model):
     youtube_link = models.CharField(max_length=255, default='')
     volume = models.IntegerField(default=5)
     active = models.BooleanField(default=True)
+    username = models.ForeignKey(User, on_delete=models.CASCADE, default=DEFAULT_USER_ID)
 
     class Meta:
         ordering = ('created_on',)
@@ -34,16 +29,12 @@ class Alarm(models.Model):
     def __str__(self):
         return str(self.alarm_time)    
 
-class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    name = models.CharField(max_length=30)
-    username = models.CharField(max_length=30, unique=True)
-    image = models.ImageField(upload_to=path_and_rename, default=None)
-
 class Event(models.Model):
     event_name = models.TextField(blank=True)
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
+    username = models.ForeignKey(User, on_delete=models.CASCADE,default=DEFAULT_USER_ID)
+
 
     class Meta:
         ordering = ('start_time',)
@@ -54,6 +45,8 @@ class Event(models.Model):
 
 class Song(models.Model):
     youtube_link = models.TextField()
+    username = models.ForeignKey(User, on_delete=models.CASCADE, default=DEFAULT_USER_ID)
+
 
     class Meta:
         ordering = ('youtube_link',)
@@ -66,6 +59,7 @@ class SleepData(models.Model):
     oxygen_level = models.IntegerField()
     date = models.DateTimeField()
     heart_rate = models.IntegerField()
+    username = models.ForeignKey(User, on_delete=models.CASCADE, default=DEFAULT_USER_ID)
 
 
     class Meta:
